@@ -1,4 +1,12 @@
-import type { AnalysisResult, AnalysisSummary } from "@/types/analysis";
+import type {
+  AnalysisResult,
+  AnalysisSummary,
+  HomeDemoExample,
+  VocabularyEntry,
+  UserProfile,
+  SuccessStory,
+  VoiceModelProfile,
+} from "@/types/analysis";
 
 export const mockAccentAnalysis: AnalysisResult = {
   analysis_id: "acc-001-a1b2c3d4",
@@ -267,6 +275,16 @@ export const mockAccentAnalysis: AnalysisResult = {
   },
   status: "completed",
   created_at: "2026-05-30T09:15:00Z",
+  intent: {
+    intents: ["Discussing Project Timeline", "Delegating Tasks", "Requesting Action"],
+    confidence: 0.94,
+    topic: "Project Management",
+  },
+  voice_comparison: {
+    original: { clarity: 62, naturalness: 58, confidence: 55 },
+    standard: { clarity: 95, naturalness: 92, confidence: 94 },
+  },
+  meaning_recovery_score: 97,
 };
 
 export const mockImpairmentAnalysis: AnalysisResult = {
@@ -516,14 +534,280 @@ export const mockImpairmentAnalysis: AnalysisResult = {
   },
   status: "completed",
   created_at: "2026-05-30T10:30:00Z",
+  intent: {
+    intents: ["Making Plans", "Social Arrangement", "Requesting Help"],
+    confidence: 0.91,
+    topic: "Personal Planning",
+  },
+  voice_comparison: {
+    original: { clarity: 48, naturalness: 45, confidence: 42 },
+    standard: { clarity: 96, naturalness: 94, confidence: 95 },
+  },
+  meaning_recovery_score: 99,
+};
+
+// Accent demo: "I sink dis project is good and we should move forward wiz it"
+export const mockAccentDemoAnalysis: AnalysisResult = {
+  analysis_id: "acc-demo-sink-dis",
+  audio: {
+    id: "audio-demo-01",
+    file_name: "team_standup_recording.wav",
+    duration: 8.2,
+    source_type: "recording",
+    format: "wav",
+    file_size: 262000,
+    created_at: "2026-05-30T11:00:00Z",
+  },
+  asr: {
+    raw_text:
+      "I sink dis project is good and we should move forward wiz it",
+    segments: [
+      {
+        start: 0.0,
+        end: 3.1,
+        text: "I sink dis project is good",
+        confidence: 0.71,
+      },
+      {
+        start: 3.1,
+        end: 8.2,
+        text: "and we should move forward wiz it",
+        confidence: 0.68,
+      },
+    ],
+    model_name: "faster-whisper-large-v3",
+    language: "en",
+  },
+  uncertainty: {
+    risk_score: 0.78,
+    uncertain_spans: [
+      {
+        start: 2,
+        end: 6,
+        text: "sink",
+        risk_type: "substitution",
+        risk_score: 0.94,
+        suggested_alternatives: ["think"],
+      },
+      {
+        start: 7,
+        end: 10,
+        text: "dis",
+        risk_type: "substitution",
+        risk_score: 0.92,
+        suggested_alternatives: ["this"],
+      },
+      {
+        start: 51,
+        end: 54,
+        text: "wiz",
+        risk_type: "substitution",
+        risk_score: 0.95,
+        suggested_alternatives: ["with"],
+      },
+    ],
+  },
+  repair: {
+    repaired_text:
+      "I think this project is good and we should move forward with it",
+    standard_text:
+      "I think this project is good, and we should move forward with it.",
+    edits: [
+      {
+        original: "sink",
+        repaired: "think",
+        start: 2,
+        end: 6,
+        reason:
+          "The word 'sink' does not fit the sentence context. 'think' is more semantically consistent with expressing an opinion about a project.",
+        confidence: 0.94,
+      },
+      {
+        original: "dis",
+        repaired: "this",
+        start: 7,
+        end: 10,
+        reason:
+          "Pronunciation variation — 'dis' is a common accented pronunciation of 'this'. Context confirms the demonstrative pronoun.",
+        confidence: 0.92,
+      },
+      {
+        original: "wiz",
+        repaired: "with",
+        start: 51,
+        end: 54,
+        reason:
+          "Phonetic substitution — /wɪz/ for /wɪð/. The preposition 'with' is required by the phrase 'move forward with it'.",
+        confidence: 0.95,
+      },
+    ],
+    repair_model: "gpt-4o-mini",
+  },
+  tts: {
+    voice_type: "standard",
+    duration: 5.8,
+    audio_url: "/mock/tts/acc-demo.mp3",
+  },
+  processing_time: {
+    asr: 1.2,
+    uncertainty: 0.08,
+    repair: 0.9,
+    tts: 0.6,
+    total: 2.8,
+  },
+  status: "completed",
+  created_at: "2026-05-30T11:00:00Z",
+  intent: {
+    intents: ["Expressing Opinion", "Recommending Action"],
+    confidence: 0.96,
+    topic: "Project Feedback",
+  },
+  voice_comparison: {
+    original: { clarity: 58, naturalness: 55, confidence: 52 },
+    standard: { clarity: 96, naturalness: 94, confidence: 95 },
+  },
+  meaning_recovery_score: 97,
+};
+
+// Speech assist demo: incomplete phrase recovery
+export const mockSpeechDemoAnalysis: AnalysisResult = {
+  analysis_id: "sp-demo-water",
+  audio: {
+    id: "audio-demo-02",
+    file_name: "voice_request.webm",
+    duration: 4.1,
+    source_type: "recording",
+    format: "webm",
+    file_size: 131000,
+    created_at: "2026-05-30T11:15:00Z",
+  },
+  asr: {
+    raw_text: "Need wa water please",
+    segments: [
+      {
+        start: 0.0,
+        end: 1.2,
+        text: "Need",
+        confidence: 0.55,
+      },
+      {
+        start: 1.2,
+        end: 1.8,
+        text: "wa",
+        confidence: 0.42,
+      },
+      {
+        start: 1.8,
+        end: 3.2,
+        text: "water",
+        confidence: 0.81,
+      },
+      {
+        start: 3.2,
+        end: 4.1,
+        text: "please",
+        confidence: 0.88,
+      },
+    ],
+    model_name: "faster-whisper-large-v3",
+    language: "en",
+  },
+  uncertainty: {
+    risk_score: 0.85,
+    uncertain_spans: [
+      {
+        start: 0,
+        end: 4,
+        text: "Need",
+        risk_type: "incomplete",
+        risk_score: 0.88,
+        suggested_alternatives: ["I need"],
+      },
+      {
+        start: 5,
+        end: 7,
+        text: "wa",
+        risk_type: "incomplete",
+        risk_score: 0.95,
+        suggested_alternatives: ["water"],
+      },
+    ],
+  },
+  repair: {
+    repaired_text: "I need water, please.",
+    standard_text: "I need some water, please.",
+    edits: [
+      {
+        original: "Need",
+        repaired: "I need",
+        start: 0,
+        end: 4,
+        reason:
+          "Incomplete phrase — subject pronoun missing. Context indicates a request, so 'I need' is the intended phrase.",
+        confidence: 0.88,
+      },
+      {
+        original: "wa",
+        repaired: "",
+        start: 5,
+        end: 7,
+        reason:
+          "Incomplete fragment — 'wa' is a truncated attempt at 'water'. The full word appears immediately after, so this fragment is removed.",
+        confidence: 0.95,
+      },
+    ],
+    repair_model: "gpt-4o-mini",
+  },
+  tts: {
+    voice_type: "standard",
+    duration: 2.4,
+    audio_url: "/mock/tts/sp-demo.mp3",
+  },
+  processing_time: {
+    asr: 0.8,
+    uncertainty: 0.06,
+    repair: 0.7,
+    tts: 0.4,
+    total: 2.0,
+  },
+  status: "completed",
+  created_at: "2026-05-30T11:15:00Z",
+  intent: {
+    intents: ["Making a Request", "Expressing Need"],
+    confidence: 0.93,
+    topic: "Daily Needs",
+  },
+  voice_comparison: {
+    original: { clarity: 35, naturalness: 30, confidence: 28 },
+    standard: { clarity: 97, naturalness: 95, confidence: 96 },
+  },
+  meaning_recovery_score: 99,
 };
 
 export const mockAnalyses: AnalysisSummary[] = [
+  {
+    analysis_id: mockAccentDemoAnalysis.analysis_id,
+    file_name: mockAccentDemoAnalysis.audio.file_name,
+    duration: mockAccentDemoAnalysis.audio.duration,
+    source_type: mockAccentDemoAnalysis.audio.source_type,
+    mode: "accent_correction",
+    raw_text_preview:
+      "I sink dis project is good and we should move forward wiz it...",
+    repaired_text_preview:
+      "I think this project is good and we should move forward with it...",
+    status: "completed",
+    has_feedback: false,
+    created_at: mockAccentDemoAnalysis.created_at,
+    confidence_improvement: 23,
+    repair_count: 3,
+    is_favorite: true,
+  },
   {
     analysis_id: mockAccentAnalysis.analysis_id,
     file_name: mockAccentAnalysis.audio.file_name,
     duration: mockAccentAnalysis.audio.duration,
     source_type: mockAccentAnalysis.audio.source_type,
+    mode: "accent_correction",
     raw_text_preview:
       "I would like to discuss teh projec deadline wiz teh team nex weak...",
     repaired_text_preview:
@@ -531,12 +815,16 @@ export const mockAnalyses: AnalysisSummary[] = [
     status: "completed",
     has_feedback: false,
     created_at: mockAccentAnalysis.created_at,
+    confidence_improvement: 24,
+    repair_count: 11,
+    is_favorite: true,
   },
   {
     analysis_id: mockImpairmentAnalysis.analysis_id,
     file_name: mockImpairmentAnalysis.audio.file_name,
     duration: mockImpairmentAnalysis.audio.duration,
     source_type: mockImpairmentAnalysis.audio.source_type,
+    mode: "speech_impairment_assistance",
     raw_text_preview:
       "I I want to go to the the park today and and meet my my friend there...",
     repaired_text_preview:
@@ -544,12 +832,31 @@ export const mockAnalyses: AnalysisSummary[] = [
     status: "completed",
     has_feedback: true,
     created_at: mockImpairmentAnalysis.created_at,
+    confidence_improvement: 31,
+    repair_count: 11,
+    is_favorite: false,
+  },
+  {
+    analysis_id: mockSpeechDemoAnalysis.analysis_id,
+    file_name: mockSpeechDemoAnalysis.audio.file_name,
+    duration: mockSpeechDemoAnalysis.audio.duration,
+    source_type: mockSpeechDemoAnalysis.audio.source_type,
+    mode: "speech_impairment_assistance",
+    raw_text_preview: "Need wa water please...",
+    repaired_text_preview: "I need some water, please.",
+    status: "completed",
+    has_feedback: false,
+    created_at: mockSpeechDemoAnalysis.created_at,
+    confidence_improvement: 40,
+    repair_count: 2,
+    is_favorite: false,
   },
   {
     analysis_id: "hist-003-xyz",
     file_name: "presentation_draft.m4a",
     duration: 58.0,
     source_type: "upload",
+    mode: "accent_correction",
     raw_text_preview:
       "Teh quarterly report shows dat we have achived significant growf...",
     repaired_text_preview:
@@ -557,13 +864,165 @@ export const mockAnalyses: AnalysisSummary[] = [
     status: "completed",
     has_feedback: false,
     created_at: "2026-05-29T14:00:00Z",
+    confidence_improvement: 28,
+    repair_count: 8,
+    is_favorite: false,
   },
 ];
+
+// Home page demo example
+export const homeDemo: HomeDemoExample = {
+  raw: "I sink dis project is good and we should move forward wiz it",
+  repaired:
+    "I think this project is good and we should move forward with it",
+  confidence_score: 94,
+  meaning_recovery: 97,
+  repair_count: 3,
+  mode: "accent_correction",
+};
+
+// Vocabulary entries
+export const mockVocabulary: VocabularyEntry[] = [
+  {
+    id: "1",
+    term: "TensorFlow",
+    category: "technical",
+    domain: "ML",
+    usage_count: 12,
+    corrections_avoided: 8,
+  },
+  {
+    id: "2",
+    term: "Kubernetes",
+    category: "technical",
+    domain: "DevOps",
+    usage_count: 7,
+    corrections_avoided: 5,
+  },
+  {
+    id: "3",
+    term: "Zhang Wei",
+    category: "people",
+    domain: "",
+    usage_count: 15,
+    corrections_avoided: 12,
+  },
+  {
+    id: "4",
+    term: "NVIDIA",
+    category: "organizations",
+    domain: "Tech",
+    usage_count: 9,
+    corrections_avoided: 6,
+  },
+  {
+    id: "5",
+    term: "transformer architecture",
+    category: "technical",
+    domain: "ML",
+    usage_count: 4,
+    corrections_avoided: 3,
+  },
+  {
+    id: "6",
+    term: "Dr. Sarah Chen",
+    category: "people",
+    domain: "",
+    usage_count: 6,
+    corrections_avoided: 5,
+  },
+];
+
+// User profile stats
+export const mockUserProfile: UserProfile = {
+  total_analyses: 24,
+  average_confidence: 87,
+  vocabulary_size: 6,
+  corrections_avoided: 39,
+  learning_progress: 72,
+};
 
 export function getAnalysisById(id: string): AnalysisResult | undefined {
   const map: Record<string, AnalysisResult> = {
     [mockAccentAnalysis.analysis_id]: mockAccentAnalysis,
     [mockImpairmentAnalysis.analysis_id]: mockImpairmentAnalysis,
+    [mockAccentDemoAnalysis.analysis_id]: mockAccentDemoAnalysis,
+    [mockSpeechDemoAnalysis.analysis_id]: mockSpeechDemoAnalysis,
   };
   return map[id];
 }
+
+/**
+ * Returns the appropriate mock analysis based on communication mode.
+ * Used by the Speak → Result flow when the user records audio.
+ *
+ * - "accent" → accent demo (sink/dis/wiz)
+ * - "speech" → impairment analysis (park/friend with disfluencies)
+ */
+export function getAnalysisByMode(mode: string): AnalysisResult {
+  if (mode === "speech") {
+    return mockImpairmentAnalysis;
+  }
+  return mockAccentDemoAnalysis;
+}
+
+// Success stories for home page
+export const mockSuccessStories: SuccessStory[] = [
+  {
+    id: "story-1",
+    raw_text: "I sink dis project is good and we should move forward wiz it",
+    repaired_text: "I think this project is good and we should move forward with it",
+    meaning_recovery: 97,
+    mode: "accent_correction",
+    time_ago: "2 hours ago",
+  },
+  {
+    id: "story-2",
+    raw_text: "Need wa water please",
+    repaired_text: "I need some water, please.",
+    meaning_recovery: 99,
+    mode: "speech_impairment_assistance",
+    time_ago: "5 hours ago",
+  },
+  {
+    id: "story-3",
+    raw_text: "Teh quarterly report shows dat we have achived significant growf",
+    repaired_text: "The quarterly report shows that we have achieved significant growth",
+    meaning_recovery: 96,
+    mode: "accent_correction",
+    time_ago: "Yesterday",
+  },
+];
+
+// Voice model profile
+export const mockVoiceModel: VoiceModelProfile = {
+  recovery_accuracy: 94,
+  vocabulary_learned: 47,
+  corrections_avoided: 156,
+  preferred_expressions: [
+    "move forward with",
+    "discuss the deadline",
+    "project configuration",
+    "deployment schedule",
+  ],
+  frequent_topics: [
+    "Project Management",
+    "Software Engineering",
+    "Team Communication",
+    "Technical Documentation",
+    "Daily Standups",
+  ],
+  accent_patterns: [
+    "th → d/t substitution",
+    "Final consonant dropping",
+    "v/w alternation",
+    "Short vowel shifts",
+  ],
+  progress_history: [
+    { month: "Jan", accuracy: 72 },
+    { month: "Feb", accuracy: 76 },
+    { month: "Mar", accuracy: 81 },
+    { month: "Apr", accuracy: 85 },
+    { month: "May", accuracy: 94 },
+  ],
+};

@@ -1,10 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Play, Pause, Volume2, Download } from "lucide-react";
+import { Play, Pause, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 
 interface TTSPlayerProps {
   voiceType: string;
@@ -26,57 +24,45 @@ export function TTSPlayer({ voiceType, duration, text }: TTSPlayerProps) {
   };
 
   return (
-    <Card>
-      <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center gap-2 text-lg">
-            <Volume2 className="h-5 w-5" />
-            Voice Output
-          </CardTitle>
-          <Badge variant="secondary">{voiceType}</Badge>
-        </div>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <p className="text-sm text-muted-foreground leading-relaxed">{text}</p>
+    <div className="rounded-2xl bg-muted/50 p-4">
+      <div className="flex items-center gap-3">
+        <Button
+          size="lg"
+          variant="outline"
+          className="h-11 w-11 rounded-2xl shrink-0 border-border"
+          onClick={togglePlayback}
+          aria-label={isPlaying ? "Pause" : "Play"}
+        >
+          {isPlaying ? (
+            <Pause className="h-4 w-4 text-primary" />
+          ) : (
+            <Play className="h-4 w-4 ml-0.5 text-primary" />
+          )}
+        </Button>
 
-        <div className="flex items-center gap-4">
-          <Button
-            size="lg"
-            variant="outline"
-            className="h-12 w-12 rounded-full"
-            onClick={togglePlayback}
-            aria-label={isPlaying ? "Pause" : "Play"}
-          >
-            {isPlaying ? (
-              <Pause className="h-5 w-5" />
-            ) : (
-              <Play className="h-5 w-5 ml-0.5" />
-            )}
-          </Button>
-
-          <div className="flex-1">
-            <div className="h-2 w-full rounded-full bg-muted">
-              <div
-                className="h-2 rounded-full bg-primary transition-all"
-                style={{ width: isPlaying ? "45%" : "0%" }}
-              />
-            </div>
-            <div className="mt-1 flex justify-between text-xs text-muted-foreground">
-              <span>{isPlaying ? "1:17" : "0:00"}</span>
-              <span>{formatTime(duration)}</span>
-            </div>
+        <div className="flex-1 min-w-0">
+          <div className="h-1.5 w-full rounded-full bg-border">
+            <div
+              className="h-1.5 rounded-full bg-primary transition-all"
+              style={{ width: isPlaying ? "45%" : "0%" }}
+            />
           </div>
-
-          <Button
-            variant="ghost"
-            size="icon"
-            aria-label="Download audio"
-            title="Download audio"
-          >
-            <Download className="h-4 w-4" />
-          </Button>
+          <div className="mt-1 flex justify-between text-[10px] text-muted-foreground">
+            <span>{isPlaying ? "1:17" : "0:00"}</span>
+            <span>{formatTime(duration)}</span>
+          </div>
         </div>
-      </CardContent>
-    </Card>
+
+        <Button
+          variant="ghost"
+          size="icon"
+          className="shrink-0 text-muted-foreground hover:text-primary"
+          aria-label="Download audio"
+          title="Download audio"
+        >
+          <Download className="h-4 w-4" />
+        </Button>
+      </div>
+    </div>
   );
 }

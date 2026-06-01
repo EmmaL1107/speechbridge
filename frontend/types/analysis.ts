@@ -10,6 +10,11 @@ export type RiskType =
   | "substitution";
 export type FeedbackType = "good" | "needs_improvement" | "bad";
 export type UserMode = "accent_correction" | "speech_impairment_assistance";
+export type VocabularyCategory =
+  | "people"
+  | "organizations"
+  | "technical"
+  | "custom";
 
 export interface AudioSegment {
   start: number;
@@ -89,6 +94,9 @@ export interface AnalysisResult {
   processing_time: ProcessingTime;
   status: AnalysisStatus;
   created_at: string;
+  intent?: IntentDetection;
+  voice_comparison?: VoiceComparison;
+  meaning_recovery_score?: number;
 }
 
 export interface AnalysisSummary {
@@ -96,9 +104,94 @@ export interface AnalysisSummary {
   file_name: string;
   duration: number;
   source_type: SourceType;
+  mode: UserMode;
   raw_text_preview: string;
   repaired_text_preview: string;
   status: AnalysisStatus;
   has_feedback: boolean;
   created_at: string;
+  confidence_improvement: number;
+  repair_count: number;
+  is_favorite: boolean;
+}
+
+export interface VocabularyEntry {
+  id: string;
+  term: string;
+  category: VocabularyCategory;
+  domain: string;
+  usage_count: number;
+  corrections_avoided: number;
+}
+
+export interface HomeDemoExample {
+  raw: string;
+  repaired: string;
+  confidence_score: number;
+  meaning_recovery: number;
+  repair_count: number;
+  mode: UserMode;
+}
+
+export interface UserProfile {
+  total_analyses: number;
+  average_confidence: number;
+  vocabulary_size: number;
+  corrections_avoided: number;
+  learning_progress: number;
+}
+
+export interface DetectedIssue {
+  original: string;
+  suggested: string;
+  issue_type: string;
+  confidence: number;
+  explanation: string;
+}
+
+export interface RepairExplanation {
+  step: string;
+  detail: string;
+}
+
+export interface FeedbackPayload {
+  analysis_id: string;
+  choice: "good" | "needs_correction";
+  corrected_text?: string;
+}
+
+export interface IntentDetection {
+  intents: string[];
+  confidence: number;
+  topic: string;
+}
+
+export interface VoiceMetrics {
+  clarity: number;
+  naturalness: number;
+  confidence: number;
+}
+
+export interface VoiceComparison {
+  original: VoiceMetrics;
+  standard: VoiceMetrics;
+}
+
+export interface SuccessStory {
+  id: string;
+  raw_text: string;
+  repaired_text: string;
+  meaning_recovery: number;
+  mode: UserMode;
+  time_ago: string;
+}
+
+export interface VoiceModelProfile {
+  recovery_accuracy: number;
+  vocabulary_learned: number;
+  corrections_avoided: number;
+  preferred_expressions: string[];
+  frequent_topics: string[];
+  accent_patterns: string[];
+  progress_history: { month: string; accuracy: number }[];
 }

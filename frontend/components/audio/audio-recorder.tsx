@@ -11,9 +11,15 @@ type RecordingState = "idle" | "recording" | "paused" | "finished";
 
 interface AudioRecorderProps {
   onRecordingComplete?: (blob: Blob, duration: number) => void;
+  onReset?: () => void;
+  disabled?: boolean;
 }
 
-export function AudioRecorder({ onRecordingComplete }: AudioRecorderProps) {
+export function AudioRecorder({
+  onRecordingComplete,
+  onReset,
+  disabled = false,
+}: AudioRecorderProps) {
   const [state, setState] = useState<RecordingState>("idle");
   const [duration, setDuration] = useState(0);
   const [permissionStatus, setPermissionStatus] = useState<
@@ -53,6 +59,7 @@ export function AudioRecorder({ onRecordingComplete }: AudioRecorderProps) {
   }, []);
 
   const requestPermissionAndRecord = async () => {
+    if (disabled) return;
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       setPermissionStatus("granted");
@@ -115,11 +122,12 @@ export function AudioRecorder({ onRecordingComplete }: AudioRecorderProps) {
     setDuration(0);
     setState("idle");
     chunksRef.current = [];
+    onReset?.();
   };
 
   const stateLabel: Record<RecordingState, string> = {
     idle: "Ready to Record",
-    recording: "Recording...",
+    recording: "Recording…",
     paused: "Paused",
     finished: "Recording Complete",
   };
@@ -128,7 +136,7 @@ export function AudioRecorder({ onRecordingComplete }: AudioRecorderProps) {
     <Card>
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-lg">Record Audio</CardTitle>
+          <CardTitle className="text-base">Record Audio</CardTitle>
           <Badge
             variant={
               state === "recording"
@@ -143,8 +151,8 @@ export function AudioRecorder({ onRecordingComplete }: AudioRecorderProps) {
         </div>
         {permissionStatus === "denied" && (
           <p className="text-sm text-destructive">
-            Microphone access denied. Please allow microphone permission in your
-            browser settings.
+            Microphone access is needed to record your voice. You can still
+            upload an audio file.
           </p>
         )}
       </CardHeader>
@@ -166,6 +174,7 @@ export function AudioRecorder({ onRecordingComplete }: AudioRecorderProps) {
               size="lg"
               className="h-16 w-16 rounded-full"
               onClick={requestPermissionAndRecord}
+              disabled={disabled}
               aria-label="Start recording"
             >
               <Mic className="h-7 w-7" />

@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { ThumbsUp, ThumbsDown, Send } from "lucide-react";
+import { ThumbsUp, ThumbsDown, Send, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 
@@ -19,7 +19,6 @@ export function FeedbackForm({ analysisId }: FeedbackFormProps) {
   const [submitted, setSubmitted] = useState(false);
 
   const handleSubmit = () => {
-    // In V1, this will call POST /api/feedback
     console.log("Feedback submitted:", {
       analysisId,
       choice,
@@ -32,10 +31,14 @@ export function FeedbackForm({ analysisId }: FeedbackFormProps) {
     return (
       <Card>
         <CardContent className="flex flex-col items-center gap-2 py-8">
-          <ThumbsUp className="h-8 w-8 text-green-600" />
-          <p className="text-sm font-medium">Thank you for your feedback!</p>
-          <p className="text-xs text-muted-foreground">
-            Your input helps improve SpeechBridge.
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-success/10">
+            <CheckCircle2 className="h-6 w-6 text-success" />
+          </div>
+          <p className="text-[13px] font-semibold text-foreground">
+            Thank you for your feedback!
+          </p>
+          <p className="text-[11px] text-muted-foreground text-center">
+            Your input helps SpeechBridge understand you better.
           </p>
         </CardContent>
       </Card>
@@ -44,14 +47,18 @@ export function FeedbackForm({ analysisId }: FeedbackFormProps) {
 
   return (
     <Card>
-      <CardHeader className="pb-3">
-        <CardTitle className="text-lg">How does this look?</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="flex gap-3">
+      <CardContent className="p-4">
+        <h3 className="text-[13px] font-semibold text-foreground mb-1">
+          Help Us Improve
+        </h3>
+        <p className="text-[11px] text-muted-foreground mb-4">
+          Was this analysis accurate?
+        </p>
+
+        <div className="flex gap-3 mb-4">
           <Button
             variant={choice === "good" ? "default" : "outline"}
-            className="flex-1 h-12"
+            className="flex-1 h-11 rounded-2xl"
             onClick={() => setChoice("good")}
             aria-label="Looks good"
           >
@@ -60,7 +67,7 @@ export function FeedbackForm({ analysisId }: FeedbackFormProps) {
           </Button>
           <Button
             variant={choice === "needs_correction" ? "default" : "outline"}
-            className="flex-1 h-12"
+            className="flex-1 h-11 rounded-2xl"
             onClick={() => setChoice("needs_correction")}
             aria-label="Needs correction"
           >
@@ -70,17 +77,18 @@ export function FeedbackForm({ analysisId }: FeedbackFormProps) {
         </div>
 
         {choice === "needs_correction" && (
-          <div className="space-y-3">
+          <div className="space-y-3 animate-in fade-in slide-in-from-bottom-1 duration-200">
             <Textarea
-              placeholder="Type the corrected text or describe the issue..."
+              placeholder="What should the correct text say?"
               value={correction}
               onChange={(e) => setCorrection(e.target.value)}
-              rows={4}
+              rows={3}
               aria-label="Corrected text"
+              className="rounded-2xl"
             />
             <Button
               onClick={handleSubmit}
-              className="w-full h-12"
+              className="w-full h-11 rounded-2xl"
               disabled={!correction.trim()}
             >
               <Send className="mr-2 h-4 w-4" />
@@ -90,7 +98,10 @@ export function FeedbackForm({ analysisId }: FeedbackFormProps) {
         )}
 
         {choice === "good" && (
-          <Button onClick={handleSubmit} className="w-full h-12">
+          <Button
+            onClick={handleSubmit}
+            className="w-full h-11 rounded-2xl animate-in fade-in duration-200"
+          >
             <ThumbsUp className="mr-2 h-4 w-4" />
             Confirm
           </Button>

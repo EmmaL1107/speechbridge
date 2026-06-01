@@ -9,57 +9,38 @@ interface DiffViewerProps {
 export function DiffViewer({ original, repaired, edits }: DiffViewerProps) {
   if (edits.length === 0) {
     return (
-      <p className="text-sm italic text-muted-foreground">No edits made.</p>
+      <p className="text-[13px] italic text-muted-foreground">
+        No corrections needed — your speech was already clear.
+      </p>
     );
   }
 
   return (
-    <div className="space-y-4">
-      <div className="space-y-2">
-        {edits.map((edit, i) => (
-          <div
-            key={i}
-            className="flex items-start gap-3 rounded-lg border p-3 text-sm"
-          >
-            <div className="min-w-0 flex-1">
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="rounded bg-red-50 px-1.5 py-0.5 font-mono text-red-700 line-through">
-                  {edit.original}
-                </span>
-                <span className="text-muted-foreground">→</span>
-                <span className="rounded bg-green-50 px-1.5 py-0.5 font-mono text-green-700">
-                  {edit.repaired}
-                </span>
-              </div>
-              <p className="mt-1 text-xs text-muted-foreground">
-                {edit.reason}
-              </p>
+    <div className="space-y-3">
+      {edits.map((edit, i) => (
+        <div
+          key={i}
+          className="flex items-start gap-3 rounded-2xl bg-muted/50 px-3.5 py-2.5"
+        >
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-center gap-1.5">
+              <span className="rounded-lg bg-destructive/10 px-1.5 py-0.5 text-[11px] font-mono text-destructive line-through decoration-destructive/40">
+                {edit.original}
+              </span>
+              <span className="text-muted-foreground text-[11px]">→</span>
+              <span className="rounded-lg bg-success/10 px-1.5 py-0.5 text-[11px] font-mono text-success font-medium">
+                {edit.repaired}
+              </span>
             </div>
-            <span className="shrink-0 text-xs text-muted-foreground">
-              {Math.round(edit.confidence * 100)}%
-            </span>
+            <p className="mt-1 text-[10px] text-muted-foreground">
+              {edit.reason}
+            </p>
           </div>
-        ))}
-      </div>
-
-      <div className="grid gap-4 md:grid-cols-2">
-        <div>
-          <p className="mb-1 text-xs font-medium text-muted-foreground">
-            Original
-          </p>
-          <p className="rounded-lg border bg-red-50/50 p-3 text-sm leading-relaxed">
-            {original}
-          </p>
+          <span className="shrink-0 text-[10px] text-muted-foreground font-mono bg-card px-1.5 py-0.5 rounded-lg border border-border">
+            {Math.round(edit.confidence * 100)}%
+          </span>
         </div>
-        <div>
-          <p className="mb-1 text-xs font-medium text-muted-foreground">
-            Repaired
-          </p>
-          <p className="rounded-lg border bg-green-50/50 p-3 text-sm leading-relaxed">
-            {repaired}
-          </p>
-        </div>
-      </div>
+      ))}
     </div>
   );
 }

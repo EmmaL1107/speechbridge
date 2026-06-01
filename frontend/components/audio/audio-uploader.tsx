@@ -8,12 +8,13 @@ import { cn } from "@/lib/utils";
 
 interface AudioUploaderProps {
   onFileSelected?: (file: File) => void;
+  disabled?: boolean;
 }
 
 const ACCEPTED_FORMATS = [".wav", ".mp3", ".m4a", ".webm"];
 const MAX_SIZE_MB = 50;
 
-export function AudioUploader({ onFileSelected }: AudioUploaderProps) {
+export function AudioUploader({ onFileSelected, disabled = false }: AudioUploaderProps) {
   const [file, setFile] = useState<File | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -69,29 +70,34 @@ export function AudioUploader({ onFileSelected }: AudioUploaderProps) {
   return (
     <Card>
       <CardHeader className="pb-3">
-        <CardTitle className="text-lg">Upload Audio</CardTitle>
+        <CardTitle className="text-base">Upload Audio</CardTitle>
       </CardHeader>
       <CardContent>
         {!file ? (
           <div
             onDragOver={(e) => {
               e.preventDefault();
-              setIsDragging(true);
+              if (!disabled) setIsDragging(true);
             }}
             onDragLeave={() => setIsDragging(false)}
-            onDrop={handleDrop}
-            onClick={() => inputRef.current?.click()}
+            onDrop={disabled ? undefined : handleDrop}
+            onClick={() => !disabled && inputRef.current?.click()}
             role="button"
             tabIndex={0}
             onKeyDown={(e) => {
-              if (e.key === "Enter" || e.key === " ") inputRef.current?.click();
+              if ((e.key === "Enter" || e.key === " ") && !disabled)
+                inputRef.current?.click();
             }}
             aria-label="Upload audio file"
             className={cn(
-              "flex cursor-pointer flex-col items-center gap-3 rounded-xl border-2 border-dashed p-8 transition-colors",
-              isDragging
+              "flex flex-col items-center gap-3 rounded-[20px] border-2 border-dashed p-8 transition-colors",
+              disabled
+                ? "cursor-not-allowed opacity-50 border-muted-foreground/15"
+                : "cursor-pointer",
+              isDragging && !disabled
                 ? "border-primary bg-primary/5"
-                : "border-muted-foreground/25 hover:border-primary/50 hover:bg-muted/50"
+                : !disabled &&
+                    "border-muted-foreground/25 hover:border-primary/50 hover:bg-muted/50"
             )}
           >
             <Upload className="h-10 w-10 text-muted-foreground" />

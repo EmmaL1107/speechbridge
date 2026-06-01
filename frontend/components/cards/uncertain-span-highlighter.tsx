@@ -6,24 +6,14 @@ interface UncertainSpanHighlighterProps {
   spans: UncertainSpan[];
 }
 
-const riskColors: Record<string, string> = {
-  low_confidence: "bg-yellow-100 text-yellow-800 border-yellow-300",
-  entity: "bg-blue-100 text-blue-800 border-blue-300",
-  number: "bg-purple-100 text-purple-800 border-purple-300",
-  technical_term: "bg-indigo-100 text-indigo-800 border-indigo-300",
-  disfluency: "bg-orange-100 text-orange-800 border-orange-300",
-  incomplete: "bg-red-100 text-red-800 border-red-300",
-  substitution: "bg-pink-100 text-pink-800 border-pink-300",
-};
-
 const riskLabels: Record<string, string> = {
-  low_confidence: "Low Confidence",
-  entity: "Entity",
+  low_confidence: "Unclear",
+  entity: "Name",
   number: "Number",
   technical_term: "Term",
-  disfluency: "Disfluency",
+  disfluency: "Repeated",
   incomplete: "Incomplete",
-  substitution: "Substitution",
+  substitution: "Word Choice",
 };
 
 export function UncertainSpanHighlighter({
@@ -31,7 +21,9 @@ export function UncertainSpanHighlighter({
   spans,
 }: UncertainSpanHighlighterProps) {
   if (spans.length === 0) {
-    return <p className="leading-relaxed">{text}</p>;
+    return (
+      <p className="text-[14px] leading-relaxed text-foreground">{text}</p>
+    );
   }
 
   const sorted = [...spans].sort((a, b) => a.start - b.start);
@@ -41,17 +33,17 @@ export function UncertainSpanHighlighter({
   sorted.forEach((span, i) => {
     if (span.start > lastIndex) {
       parts.push(
-        <span key={`text-${i}`}>{text.slice(lastIndex, span.start)}</span>
+        <span key={`text-${i}`} className="text-foreground">
+          {text.slice(lastIndex, span.start)}
+        </span>
       );
     }
 
-    const colorClass =
-      riskColors[span.risk_type] ?? "bg-gray-100 text-gray-800 border-gray-300";
     parts.push(
       <span
         key={`span-${i}`}
-        className={`rounded border px-0.5 font-medium ${colorClass}`}
-        title={`${riskLabels[span.risk_type] ?? span.risk_type} — Risk: ${Math.round(span.risk_score * 100)}%`}
+        className="rounded-lg bg-primary/10 text-primary px-1 py-0.5 font-medium text-[13px] border border-primary/20"
+        title={`${riskLabels[span.risk_type] ?? span.risk_type} — Confidence: ${Math.round(span.risk_score * 100)}%`}
       >
         {text.slice(span.start, span.end)}
       </span>
@@ -60,22 +52,25 @@ export function UncertainSpanHighlighter({
   });
 
   if (lastIndex < text.length) {
-    parts.push(<span key="tail">{text.slice(lastIndex)}</span>);
+    parts.push(
+      <span key="tail" className="text-foreground">
+        {text.slice(lastIndex)}
+      </span>
+    );
   }
 
   return (
     <div className="space-y-3">
-      <p className="leading-relaxed">{parts}</p>
-      <div className="flex flex-wrap gap-2">
+      <p className="text-[14px] leading-relaxed">{parts}</p>
+      <div className="flex flex-wrap gap-1.5">
         {sorted.map((span, i) => (
-          <Badge key={i} variant="outline" className="text-xs font-normal">
-            <span
-              className={`mr-1 inline-block h-2 w-2 rounded-full ${riskColors[span.risk_type]?.split(" ")[0] ?? "bg-gray-400"}`}
-            />
+          <Badge
+            key={i}
+            variant="outline"
+            className="text-[10px] font-normal gap-1"
+          >
+            <span className="inline-block h-2 w-2 rounded-full bg-primary/40" />
             {span.text} → {span.suggested_alternatives.join(", ")}
-            <span className="ml-1 text-muted-foreground">
-              ({Math.round(span.risk_score * 100)}%)
-            </span>
           </Badge>
         ))}
       </div>

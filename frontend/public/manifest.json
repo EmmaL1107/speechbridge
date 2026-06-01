@@ -1,11 +1,11 @@
 {
   "name": "SpeechBridge",
   "short_name": "SpeechBridge",
-  "description": "AI-powered non-standard speech understanding and standard expression system",
+  "description": "Helping Every Voice Be Understood — AI-powered communication accessibility",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#18181b",
+  "background_color": "#F8FAFC",
+  "theme_color": "#2563EB",
   "orientation": "portrait",
   "icons": [
     {
