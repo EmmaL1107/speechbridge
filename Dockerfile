@@ -24,7 +24,6 @@ ENV ASR_MODEL=sensevoice-v1
 ENV LLM_PROVIDER=dashscope
 ENV PYTHONPATH=/app
 
-ENV PORT=7860
-EXPOSE ${PORT}
+EXPOSE 7860
 
-CMD uvicorn web.demo:app --host 0.0.0.0 --port ${PORT}
+CMD ["uvicorn", "web.demo:app", "--host", "0.0.0.0", "--port", "7860"]
