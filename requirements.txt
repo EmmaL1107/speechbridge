@@ -5,4 +5,3 @@ gradio>=4.44.0
 spaces>=0.0.1
 # Install the SpeechBridge package itself (pulls torch, faster-whisper,
 # litellm, dashscope, pydub, soundfile, noisereduce, etc.).
-.
