@@ -1,0 +1,161 @@
+{% extends "base.html" %}
+{% block title %}{{ t("result.done", lang) }} — SpeechBridge{% endblock %}
+
+{% block content %}
+<div class="breadcrumb">
+    <a href="/">← {{ t("result.back", lang) }}</a>
+    <a href="/history">{{ t("result.history", lang) }}</a>
+</div>
+
+{% if task.status == "processing" %}
+<div class="card status-card processing">
+    <h2>⏳ {{ t("result.processing", lang) }}</h2>
+    <p>{{ task.filename }}</p>
+    <div class="loading-bar"><div class="loading-bar-inner"></div></div>
+    <p class="hint">{{ t("result.processing_hint", lang) }}</p>
+{% elif task.status == "error" %}
+<div class="card status-card error">
+    <h2>❌ {{ t("result.error", lang) }}</h2>
+    <p>{{ task.error_message }}</p>
+{% else %}
+<div class="card status-card success">
+    <h2>✅ {{ t("result.done", lang) }}</h2>
+
+    <div class="result-header">
+        <span class="tag">{{ task.scene }}</span>
+        <span class="tag">{{ task.filename }}</span>
+        <span class="tag">{{ "%.2f"|format(task.processing_time) }}s</span>
+    </div>
+
+    <div class="compare-box">
+        <div class="compare-item">
+            <h3>📝 {{ t("result.original", lang) }}</h3>
+            <div class="text-box original">{{ task.asr_text or '(无)' }}</div>
+            <div class="meta">{{ t("result.confidence", lang) }}: {{ "%.2f"|format(task.asr_confidence) }} · {{ t("result.language", lang) }}: {{ task.asr_language }} · {{ t("result.duration", lang) }}: {{ "%.1f"|format(task.asr_duration) }}s</div>
+        </div>
+        <div class="compare-arrow">→</div>
+        <div class="compare-item">
+            <h3>✅ {{ t("result.corrected", lang) }}</h3>
+            <div class="text-box corrected">{{ task.corrected_text or '(无)' }}</div>
+            <div class="meta">{{ t("result.recovery_confidence", lang) }}: {{ "%.2f"|format(task.recovery_confidence) }}</div>
+            {% if task.corrected_text %}
+            <div class="tts-buttons">
+                <button class="btn btn-tts" data-label="🔊 中文" onclick="playTTS(this, '{{ task.corrected_text | e }}', 'zh-CN-XiaoxiaoNeural', 'zh')">🔊 中文</button>
+                <button class="btn btn-tts" data-label="🔊 EN" onclick="playTTS(this, '{{ task.corrected_text | e }}', 'en-US-AriaNeural', 'en')">🔊 EN</button>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if task.intent %}
+    <div class="section">
+        <h3>🎯 {{ t("result.intent", lang) }}</h3>
+        <p class="intent-text">{{ task.intent }}</p>
+    </div>
+    {% endif %}
+
+    {% if entities %}
+    <div class="section">
+        <h3>📦 {{ t("result.entities", lang) }}</h3>
+        <div class="data-table-wrap">
+        <table class="data-table">
+            <thead><tr><th>{{ t("history.file", lang) }}</th><th>{{ t("history.scene", lang) }}</th><th>Value</th></tr></thead>
+            <tbody>
+            {% for e in entities %}
+            <tr><td>{{ e.name }}</td><td><span class="tag">{{ e.type }}</span></td><td>{{ e.value }}</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if corrections %}
+    <div class="section">
+        <h3>🔧 {{ t("result.corrections", lang) }}</h3>
+        <div class="data-table-wrap">
+        <table class="data-table">
+            <thead><tr><th>Original</th><th>Corrected</th><th>Reason</th></tr></thead>
+            <tbody>
+            {% for c in corrections %}
+            <tr><td class="text-red">{{ c.original }}</td><td class="text-green">{{ c.corrected }}</td><td>{{ c.reason }}</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if actions %}
+    <div class="section">
+        <h3>📋 {{ t("result.actions", lang) }}</h3>
+        <ol class="action-list">
+        {% for a in actions %}<li>{{ a }}</li>{% endfor %}
+        </ol>
+    </div>
+    {% endif %}
+{% endif %}
+
+    <div class="actions-bar">
+        <a href="/" class="btn btn-primary">{{ t("result.back", lang) }}</a>
+        <a href="/history" class="btn btn-secondary">{{ t("result.history", lang) }}</a>
+        <button class="btn btn-danger" onclick="deleteTask({{ task.id }})">{{ t("result.delete", lang) }}</button>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+{% if task.status == "processing" %}
+const pollInterval = setInterval(async () => {
+    try {
+        const r = await fetch('/api/task/{{ task.id }}/status');
+        const d = await r.json();
+        if (d.status === 'done' || d.status === 'error') { clearInterval(pollInterval); window.location.reload(); }
+    } catch(e) {}
+}, 2000);
+{% endif %}
+async function deleteTask(id) { if (!confirm('Delete?')) return; const r = await fetch('/api/task/'+id, {method:'DELETE'}); if(r.ok) window.location.href='/history'; }
+
+let currentAudio = null;
+let currentBtn = null;
+
+function playTTS(btn, text, voice, lang) {
+    // 点击正在播放的按钮 → 停止
+    if (currentAudio && currentBtn === btn) {
+        currentAudio.pause();
+        currentAudio = null;
+        btn.classList.remove('playing');
+        currentBtn = null;
+        return;
+    }
+    // 停止之前的播放
+    if (currentAudio) {
+        currentAudio.pause();
+        if (currentBtn) currentBtn.classList.remove('playing');
+    }
+    // 开始新播放（_ts 防浏览器缓存）
+    const url = '/api/tts?text=' + encodeURIComponent(text) + '&voice=' + encodeURIComponent(voice) + '&lang=' + encodeURIComponent(lang) + '&_ts=' + Date.now();
+    const audio = new Audio();
+    currentAudio = audio;
+    currentBtn = btn;
+    btn.classList.add('playing');
+
+    audio.onerror = () => {
+        btn.classList.remove('playing');
+        currentAudio = null;
+        currentBtn = null;
+        btn.textContent = '❌ 失败';
+        setTimeout(() => { btn.textContent = btn.dataset.label; }, 2000);
+    };
+    audio.onended = () => { btn.classList.remove('playing'); currentAudio = null; currentBtn = null; };
+
+    audio.src = url;
+    audio.play().catch(() => {
+        btn.classList.remove('playing');
+        currentAudio = null;
+        currentBtn = null;
+    });
+}
+</script>
+{% endblock %}

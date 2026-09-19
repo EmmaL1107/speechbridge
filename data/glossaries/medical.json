@@ -1,0 +1,65 @@
+{
+  "name": "medical",
+  "entries": [
+    {
+      "term": "hypertension",
+      "aliases": ["hyper tension", "high blood pressure"],
+      "category": "medical",
+      "description": "高血压"
+    },
+    {
+      "term": "diabetes",
+      "aliases": ["diabetis", "diabetus"],
+      "category": "medical",
+      "description": "糖尿病"
+    },
+    {
+      "term": "pneumonia",
+      "aliases": ["newmonia", "numonia", "phemonia"],
+      "category": "medical",
+      "description": "肺炎"
+    },
+    {
+      "term": "antibiotics",
+      "aliases": ["anti biotics", "antibotics"],
+      "category": "medical",
+      "description": "抗生素"
+    },
+    {
+      "term": "prescription",
+      "aliases": ["perscription", "preescription"],
+      "category": "medical",
+      "description": "处方"
+    },
+    {
+      "term": "ibuprofen",
+      "aliases": ["ibuprofin", "ibu profen"],
+      "category": "medical",
+      "description": "布洛芬"
+    },
+    {
+      "term": "acetaminophen",
+      "aliases": ["acetamenophen", "tylenol"],
+      "category": "medical",
+      "description": "对乙酰氨基酚"
+    },
+    {
+      "term": "MRI",
+      "aliases": ["em are eye", "m r i"],
+      "category": "medical",
+      "description": "磁共振成像"
+    },
+    {
+      "term": "CT scan",
+      "aliases": ["cat scan", "see tee scan"],
+      "category": "medical",
+      "description": "CT 扫描"
+    },
+    {
+      "term": "electrocardiogram",
+      "aliases": ["ecg", "ekg", "electro cardiogram"],
+      "category": "medical",
+      "description": "心电图"
+    }
+  ]
+}

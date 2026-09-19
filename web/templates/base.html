@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="{{ lang }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#4f46e5">
+    <meta name="description" content="SpeechBridge — 智能语义恢复系统">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="SpeechBridge">
+    <link rel="manifest" href="/static/manifest.json">
+    <link rel="icon" href="/static/icons/icon-192.png">
+    <link rel="apple-touch-icon" href="/static/icons/icon-192.png">
+    <title>{% block title %}SpeechBridge{% endblock %}</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <a href="/" class="logo">🫶 SpeechBridge</a>
+            <div class="nav-links">
+                <a href="/">{{ t("nav.home", lang) }}</a>
+                <a href="/history">{{ t("nav.history", lang) }}</a>
+
+                {% if user %}
+                <a href="/profile">{{ t("nav.profile", lang) }}</a>
+                <span class="nav-user">👤 {{ user.username }}</span>
+                <a href="/logout">{{ t("nav.logout", lang) }}</a>
+                {% else %}
+                <a href="/login">{{ t("nav.login", lang) }}</a>
+                <a href="/register">{{ t("nav.register", lang) }}</a>
+                {% endif %}
+
+                <a href="/lang/{{ 'en' if lang == 'zh' else 'zh' }}" class="lang-switch">
+                    {{ 'EN' if lang == 'zh' else '中' }}
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container">
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p>SpeechBridge — {{ t("footer.text", lang) }}</p>
+        </div>
+    </footer>
+
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/static/sw.js')
+                .then(reg => console.log('SW registered:', reg.scope))
+                .catch(err => console.log('SW failed:', err));
+        }
+    </script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

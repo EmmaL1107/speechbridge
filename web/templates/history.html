@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}{{ t("history.title", lang) }} — SpeechBridge{% endblock %}
+
+{% block content %}
+<div class="breadcrumb">
+    <a href="/">← {{ t("result.back", lang) }}</a>
+</div>
+
+<div class="card">
+    <h2>📊 {{ t("history.title", lang) }}</h2>
+
+    {% if tasks %}
+    <div class="data-table-wrap">
+    <table class="data-table history-table">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>{{ t("history.file", lang) }}</th>
+                <th>{{ t("history.scene", lang) }}</th>
+                <th>{{ t("history.original", lang) }}</th>
+                <th>{{ t("history.corrected", lang) }}</th>
+                <th>{{ t("history.confidence", lang) }}</th>
+                <th>{{ t("history.time", lang) }}</th>
+                <th>{{ t("history.status", lang) }}</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for task in tasks %}
+            <tr onclick="window.location='/task/{{ task.id }}'" class="clickable">
+                <td>{{ task.id }}</td>
+                <td>{{ task.filename[:25] }}</td>
+                <td><span class="tag">{{ task.scene }}</span></td>
+                <td class="text-truncate">{{ task.asr_text[:35] }}{% if task.asr_text|length > 35 %}...{% endif %}</td>
+                <td class="text-truncate">{{ task.corrected_text[:35] }}{% if task.corrected_text|length > 35 %}...{% endif %}</td>
+                <td>{{ "%.2f"|format(task.recovery_confidence) }}</td>
+                <td>{{ "%.1f"|format(task.processing_time) }}s</td>
+                <td>
+                    {% if task.status == "done" %}<span class="status done">✅</span>
+                    {% elif task.status == "error" %}<span class="status error">❌</span>
+                    {% elif task.status == "processing" %}<span class="status processing">⏳</span>
+                    {% else %}<span class="status pending">⏸</span>{% endif %}
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <p>📭 {{ t("history.empty", lang) }}</p>
+        <a href="/" class="btn btn-primary">{{ t("history.upload_first", lang) }}</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

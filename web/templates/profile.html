@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}{{ t("profile.title", lang) }} — SpeechBridge{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width: 600px; margin: 0 auto;">
+    <h2>{{ t("profile.title", lang) }}</h2>
+
+    {% if saved %}
+    <div class="alert alert-success">{{ t("profile.saved", lang) }}</div>
+    {% endif %}
+
+    <form method="post" action="/profile">
+        <div class="form-group">
+            <label>{{ t("profile.username", lang) }}</label>
+            <input type="text" value="{{ user.username }}" disabled>
+        </div>
+        <div class="form-group">
+            <label>{{ t("profile.email", lang) }}</label>
+            <input type="email" value="{{ user.email }}" disabled>
+        </div>
+
+        <hr style="margin: 20px 0; border: none; border-top: 1px solid var(--border);">
+
+        <div class="form-group">
+            <label>{{ t("profile.default_scene", lang) }}</label>
+            <select name="default_scene">
+                <option value="general" {{ "selected" if user.default_scene == "general" }}>{{ t("upload.scene.general", lang) }}</option>
+                <option value="meeting" {{ "selected" if user.default_scene == "meeting" }}>{{ t("upload.scene.meeting", lang) }}</option>
+                <option value="education" {{ "selected" if user.default_scene == "education" }}>{{ t("upload.scene.education", lang) }}</option>
+                <option value="medical" {{ "selected" if user.default_scene == "medical" }}>{{ t("upload.scene.medical", lang) }}</option>
+                <option value="accessibility" {{ "selected" if user.default_scene == "accessibility" }}>{{ t("upload.scene.accessibility", lang) }}</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label class="checkbox-label">
+                <input type="checkbox" name="default_accessibility" value="1" {{ "checked" if user.default_accessibility }}>
+                {{ t("profile.default_accessibility", lang) }}
+            </label>
+        </div>
+
+        <div class="form-group">
+            <label>{{ t("profile.language", lang) }}</label>
+            <select name="language">
+                <option value="zh" {{ "selected" if user.language == "zh" }}>中文</option>
+                <option value="en" {{ "selected" if user.language == "en" }}>English</option>
+            </select>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block">{{ t("profile.save", lang) }}</button>
+    </form>
+</div>
+{% endblock %}

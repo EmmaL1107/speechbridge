@@ -1,0 +1,65 @@
+{
+  "name": "tech",
+  "entries": [
+    {
+      "term": "Kubernetes",
+      "aliases": ["kubernets", "kube", "k8s"],
+      "category": "tech",
+      "description": "容器编排平台"
+    },
+    {
+      "term": "Docker",
+      "aliases": ["docker container"],
+      "category": "tech",
+      "description": "容器化平台"
+    },
+    {
+      "term": "API",
+      "aliases": ["a p i", "a.p.i."],
+      "category": "tech",
+      "description": "应用程序接口"
+    },
+    {
+      "endpoint": "endpoint",
+      "aliases": ["end point"],
+      "category": "tech",
+      "description": "端点"
+    },
+    {
+      "term": "microservices",
+      "aliases": ["micro services", "microservice"],
+      "category": "tech",
+      "description": "微服务"
+    },
+    {
+      "term": "PostgreSQL",
+      "aliases": ["postgres", "post gres", "postgreSQL"],
+      "category": "tech",
+      "description": "PostgreSQL 数据库"
+    },
+    {
+      "term": "Redis",
+      "aliases": ["redis cache"],
+      "category": "tech",
+      "description": "Redis 缓存"
+    },
+    {
+      "term": "CI/CD",
+      "aliases": ["c i c d", "continuous integration"],
+      "category": "tech",
+      "description": "持续集成/持续部署"
+    },
+    {
+      "term": "WebSocket",
+      "aliases": ["web socket", "websocket"],
+      "category": "tech",
+      "description": "WebSocket 协议"
+    },
+    {
+      "term": "OAuth",
+      "aliases": ["o auth", "oauth2"],
+      "category": "tech",
+      "description": "OAuth 认证"
+    }
+  ]
+}

@@ -1,0 +1,198 @@
+{% extends "base.html" %}
+{% block title %}SpeechBridge — {{ t("nav.home", lang) }}{% endblock %}
+
+{% block content %}
+<div class="hero">
+    <h1>🫶 SpeechBridge</h1>
+    <p class="subtitle">{{ t("hero.subtitle", lang) }}</p>
+</div>
+
+<div class="card upload-card">
+    <h2>🎤 {{ t("upload.title", lang) }}</h2>
+
+    <div class="record-section">
+        <div class="mic-area">
+            <button id="micBtn" class="mic-btn" title="{{ t('upload.record_hint', lang) }}">
+                <span class="mic-icon">🎤</span>
+            </button>
+            <div class="mic-status" id="micStatus">{{ t("upload.record_hint", lang) }}</div>
+            <div class="mic-timer" id="micTimer" style="display:none">00:00</div>
+            <div class="waveform" id="waveform" style="display:none">
+                <div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div>
+                <div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div>
+                <div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div>
+            </div>
+        </div>
+        <div id="audioPreview" class="audio-preview" style="display:none">
+            <audio id="audioPlayer" controls></audio>
+            <div class="preview-actions">
+                <button class="btn btn-secondary" id="reRecordBtn">🔄 {{ t("upload.rerecord", lang) }}</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="divider"><span>{{ t("upload.or", lang) }}</span></div>
+
+    <form id="uploadForm" action="/api/upload" method="post" enctype="multipart/form-data">
+        <div class="form-group">
+            <div class="file-drop" id="fileDrop">
+                <input type="file" name="file" id="fileInput" accept=".wav,.mp3,.m4a,.flac,.ogg,.webm">
+                <div class="file-drop-content">
+                    <span class="icon">📁</span>
+                    <p>{{ t("upload.drag_hint", lang) }} <strong>{{ t("upload.click_select", lang) }}</strong></p>
+                    <p class="hint">{{ t("upload.format_hint", lang) }}</p>
+                </div>
+                <div class="file-selected" id="fileSelected" style="display:none">
+                    <span class="icon">✅</span>
+                    <p id="fileName"></p>
+                    <p class="hint" id="fileSize"></p>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label for="scene">{{ t("upload.scene", lang) }}</label>
+                <select name="scene" id="scene">
+                    <option value="general" {{ "selected" if user and user.default_scene == "general" }}>{{ t("upload.scene.general", lang) }}</option>
+                    <option value="meeting" {{ "selected" if user and user.default_scene == "meeting" }}>{{ t("upload.scene.meeting", lang) }}</option>
+                    <option value="education" {{ "selected" if user and user.default_scene == "education" }}>{{ t("upload.scene.education", lang) }}</option>
+                    <option value="medical" {{ "selected" if user and user.default_scene == "medical" }}>{{ t("upload.scene.medical", lang) }}</option>
+                    <option value="accessibility" {{ "selected" if user and user.default_scene == "accessibility" }}>{{ t("upload.scene.accessibility", lang) }}</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="checkbox-label">
+                    <input type="checkbox" name="accessibility" value="true" {{ "checked" if user and user.default_accessibility }}>
+                    ♿ {{ t("upload.accessibility", lang) }}
+                </label>
+                <p class="hint">{{ t("upload.accessibility_hint", lang) }}</p>
+            </div>
+        </div>
+
+        <input type="hidden" name="recorded_blob" id="recordedBlob">
+        <button type="submit" class="btn btn-primary btn-block" id="submitBtn" disabled>
+            {{ t("upload.submit", lang) }}
+        </button>
+    </form>
+</div>
+
+<div class="features">
+    <div class="feature-card"><h3>🎯 {{ t("feature.semantic", lang) }}</h3><p>{{ t("feature.semantic_desc", lang) }}</p></div>
+    <div class="feature-card"><h3>🌍 {{ t("feature.accent", lang) }}</h3><p>{{ t("feature.accent_desc", lang) }}</p></div>
+    <div class="feature-card"><h3>♿ {{ t("feature.accessible", lang) }}</h3><p>{{ t("feature.accessible_desc", lang) }}</p></div>
+    <div class="feature-card"><h3>🏢 {{ t("feature.scene", lang) }}</h3><p>{{ t("feature.scene_desc", lang) }}</p></div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const micBtn = document.getElementById('micBtn');
+const micStatus = document.getElementById('micStatus');
+const micTimer = document.getElementById('micTimer');
+const waveform = document.getElementById('waveform');
+const audioPreview = document.getElementById('audioPreview');
+const audioPlayer = document.getElementById('audioPlayer');
+const reRecordBtn = document.getElementById('reRecordBtn');
+const uploadForm = document.getElementById('uploadForm');
+const submitBtn = document.getElementById('submitBtn');
+const fileInput = document.getElementById('fileInput');
+
+let mediaRecorder = null;
+let audioChunks = [];
+let recordedBlob = null;
+let timerInterval = null;
+let seconds = 0;
+let audioContext = null;
+let analyser = null;
+let animationId = null;
+
+micBtn.addEventListener('click', async () => {
+    if (mediaRecorder && mediaRecorder.state === 'recording') stopRecording();
+    else await startRecording();
+});
+
+async function startRecording() {
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, sampleRate: 16000 } });
+        audioContext = new AudioContext();
+        analyser = audioContext.createAnalyser();
+        audioContext.createMediaStreamSource(stream).connect(analyser);
+        analyser.fftSize = 64;
+
+        mediaRecorder = new MediaRecorder(stream, { mimeType: getSupportedMimeType() });
+        audioChunks = [];
+        mediaRecorder.ondataavailable = e => { if (e.data.size > 0) audioChunks.push(e.data); };
+        mediaRecorder.onstop = () => {
+            recordedBlob = new Blob(audioChunks, { type: mediaRecorder.mimeType || 'audio/webm' });
+            audioPlayer.src = URL.createObjectURL(recordedBlob);
+            audioPreview.style.display = 'block';
+            stream.getTracks().forEach(t => t.stop());
+            updateSubmitBtn();
+        };
+
+        mediaRecorder.start(100);
+        micBtn.classList.add('recording');
+        micStatus.textContent = '{{ t("upload.recording", lang) }}';
+        micTimer.style.display = 'block';
+        waveform.style.display = 'flex';
+        audioPreview.style.display = 'none';
+        seconds = 0;
+        updateTimer();
+        timerInterval = setInterval(updateTimer, 1000);
+        animateWaveform();
+    } catch (err) {
+        micStatus.textContent = '❌ ' + (err.name === 'NotAllowedError' ? 'Permission denied' : err.message);
+    }
+}
+
+function stopRecording() {
+    if (mediaRecorder && mediaRecorder.state === 'recording') mediaRecorder.stop();
+    micBtn.classList.remove('recording');
+    micStatus.textContent = '{{ t("upload.record_done", lang) }}';
+    clearInterval(timerInterval);
+    if (animationId) cancelAnimationFrame(animationId);
+    waveform.style.display = 'none';
+}
+
+function updateTimer() { const m=String(Math.floor(seconds/60)).padStart(2,'0'), s=String(seconds%60).padStart(2,'0'); micTimer.textContent=`${m}:${s}`; seconds++; }
+
+function animateWaveform() {
+    if (!analyser) return;
+    const data = new Uint8Array(analyser.frequencyBinCount);
+    analyser.getByteFrequencyData(data);
+    waveform.querySelectorAll('.wave-bar').forEach((b,i) => { b.style.height = Math.max(4,(data[i]||0)/2)+'px'; });
+    animationId = requestAnimationFrame(animateWaveform);
+}
+
+function getSupportedMimeType() { for (const t of ['audio/webm;codecs=opus','audio/webm','audio/ogg;codecs=opus','audio/mp4']) if (MediaRecorder.isTypeSupported(t)) return t; return ''; }
+
+reRecordBtn.addEventListener('click', () => { recordedBlob=null; audioPreview.style.display='none'; micStatus.textContent='{{ t("upload.record_hint", lang) }}'; micTimer.style.display='none'; micTimer.textContent='00:00'; updateSubmitBtn(); });
+
+document.getElementById('fileDrop').addEventListener('dragover', e => { e.preventDefault(); e.currentTarget.classList.add('dragover'); });
+document.getElementById('fileDrop').addEventListener('dragleave', e => e.currentTarget.classList.remove('dragover'));
+document.getElementById('fileDrop').addEventListener('drop', e => { e.preventDefault(); e.currentTarget.classList.remove('dragover'); if(e.dataTransfer.files.length){fileInput.files=e.dataTransfer.files;showFile(e.dataTransfer.files[0]);} });
+fileInput.addEventListener('change', () => { if(fileInput.files.length) showFile(fileInput.files[0]); });
+function showFile(f) { document.getElementById('fileName').textContent=f.name; document.getElementById('fileSize').textContent=f.size<1024?f.size+'B':f.size<1048576?(f.size/1024).toFixed(1)+'KB':(f.size/1048576).toFixed(1)+'MB'; document.querySelector('.file-drop-content').style.display='none'; document.getElementById('fileSelected').style.display='flex'; recordedBlob=null; updateSubmitBtn(); }
+
+function updateSubmitBtn() { submitBtn.disabled = !(fileInput.files.length || recordedBlob); }
+
+uploadForm.addEventListener('submit', async e => {
+    e.preventDefault();
+    submitBtn.disabled = true;
+    submitBtn.textContent = '{{ t("upload.processing", lang) }}';
+    const fd = new FormData();
+    fd.append('scene', document.getElementById('scene').value);
+    fd.append('accessibility', document.querySelector('input[name="accessibility"]').checked);
+    if (recordedBlob) fd.append('file', recordedBlob, 'recording.'+(recordedBlob.type.includes('webm')?'webm':'ogg'));
+    else if (fileInput.files.length) fd.append('file', fileInput.files[0]);
+    else { submitBtn.textContent='🚀 {{ t("upload.submit", lang) }}'; submitBtn.disabled=false; return; }
+    try {
+        const r = await fetch('/api/upload', { method:'POST', body:fd });
+        if (!r.ok) throw new Error('Upload failed');
+        const data = await r.json();
+        window.location.href = '/task/' + data.task_id;
+    } catch(err) { submitBtn.textContent='❌ Error'; submitBtn.disabled=false; }
+});
+</script>
+{% endblock %}
