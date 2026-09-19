@@ -22,7 +22,7 @@ import gradio as gr
 
 # import spaces  # uncomment to enable ZeroGPU for local Whisper ASR
 
-from speechbridge.config import PipelineConfig
+from src.speechbridge.config import PipelineConfig
 from speechbridge.models import OutputFormat, Scene
 from speechbridge.pipeline import SpeechBridgePipeline
 
